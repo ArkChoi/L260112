@@ -1,5 +1,6 @@
 #include <iostream>
 #include <exception>
+#include <string>
 
 #include "mysql-connector/include/jdbc/mysql_connection.h"
 #include "mysql-connector/include/jdbc/cppconn/driver.h"
@@ -22,6 +23,9 @@ int main()
 	sql::Connection* Connection = nullptr;
 	sql::Statement* Statement = nullptr;
 	sql::ResultSet* ResultSet = nullptr;
+	sql::PreparedStatement* PreparedStatement = nullptr;
+
+	std::string TempStr;
 
 	try
 	{
@@ -31,26 +35,23 @@ int main()
 
 		Connection->setSchema("world");
 
+		std::cout << "City : ";
+		std::cin >> TempStr;
+
 		Statement = Connection->createStatement();
-		ResultSet = Statement->executeQuery("select * from city left join country on city.CountryCode = country.Code where city.District = 'Seoul' or city.District = 'Pusan' or city.District = 'Taegu'; ");
+		PreparedStatement = Connection->prepareStatement("select * from city where `Name` = ? ;");
+		PreparedStatement->setString(1, TempStr);
+		ResultSet = PreparedStatement->executeQuery();
+		//ResultSet = Statement->executeQuery("select * from city where `Name` = `" + TempStr + "` ;"); //정적쿼리만 사용
 
 		while (ResultSet->next())
 		{
 			std::cout << ResultSet->getString("Name") << ", ";
-			std::cout << ResultSet->getString("District") << ", ";
+			//std::cout << ResultSet->getString("District") << ", ";
 			std::cout << ResultSet->getString("CountryCode") << std::endl;
 			std::cout << std::endl;
 		}
 
-		ResultSet = Statement->executeQuery("select city.`Name` as CName, country.Name as NName from city left join country on city.CountryCode = country.Code where city.District = 'Seoul' or city.District = 'Pusan' or city.District = 'Taegu'; ");
-
-		while (ResultSet->next())
-		{
-			std::cout << "Use as name" << std::endl;
-			std::cout << ResultSet->getString("CName") << ", ";
-			std::cout << ResultSet->getString("NName") << ", " << std::endl;
-			std::cout << std::endl;
-		}
 	}
 	catch (const std::exception e)
 	{
